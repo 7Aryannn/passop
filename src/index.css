@@ -4,21 +4,40 @@
 @tailwind components;
 @tailwind utilities;
 
-/*  html,
-body {
-   overflow: hidden; 
-  scrollbar-width: none;
-} *
-
- html::-webkit-scrollbar,
-body::-webkit-scrollbar {
-  display: none;
-} */
-
 @layer components {
   .mycontainer {
     @apply mx-auto container px-40 py-16;
   }
+}
+
+html,
+body {
+  background-color: rgb(10, 10, 10);
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(71, 85, 105, 0.4) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 0px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.4);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
 }
 
 .manager-root {
@@ -26,13 +45,11 @@ body::-webkit-scrollbar {
 }
 
 @keyframes lockPulse {
-
   0%,
   100% {
     transform: scale(1);
     opacity: 0.6;
   }
-
   50% {
     transform: scale(1.1);
     opacity: 1;
@@ -47,11 +64,9 @@ body::-webkit-scrollbar {
   0% {
     transform: rotate(0deg) scale(1);
   }
-
   50% {
     transform: rotate(180deg) scale(1.15);
   }
-
   100% {
     transform: rotate(360deg) scale(1);
   }
@@ -94,7 +109,6 @@ body::-webkit-scrollbar {
   background: rgba(59, 130, 246, 0.04);
 }
 
-/* --- Manager.css --- */
 .floating-input {
   background: rgba(8, 13, 24, 0.6);
 }
@@ -136,7 +150,6 @@ body::-webkit-scrollbar {
   background: rgba(59, 130, 246, 0.05);
 }
 
-/* --- Navbar.css --- */
 .navbar-container {
   background: rgba(8, 10, 18, 0.75);
   backdrop-filter: blur(16px);
@@ -156,7 +169,6 @@ body::-webkit-scrollbar {
   font-family: 'DM Mono', monospace;
 }
 
-/* --- Vault.css --- */
 .vault-font-mono {
   font-family: 'DM Mono', monospace;
 }
@@ -186,4 +198,126 @@ body::-webkit-scrollbar {
 .vault-btn-cancel {
   background: rgba(8, 13, 24, 0.4);
   font-family: 'DM Mono', monospace;
+}
+
+.delete-confirm-btn {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.25);
+  color: rgba(239, 68, 68, 0.85);
+  font-family: 'DM Mono', monospace;
+}
+
+.delete-confirm-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.45);
+}
+
+.vault-input,
+.floating-input {
+  line-height: 1;
+}
+
+.cred-card-transition {
+  transform-origin: center;
+  will-change: transform, opacity, filter;
+}
+
+.toast-bg {
+  background: rgba(6, 9, 18, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast-enter {
+  animation: toastEnter 0.25s ease forwards;
+}
+
+@keyframes credEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.cred-enter {
+  animation: credEnter 0.25s ease forwards;
+}
+
+.btn-success {
+  background: rgba(34, 197, 94, 0.06);
+}
+
+@keyframes toastEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toast-enter {
+  animation: toastEnter 0.22s ease-out forwards;
+}
+
+@keyframes toastExit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(4px) scale(0.97);
+  }
+}
+
+.toast-exit {
+  animation: toastExit 0.22s ease-in forwards;
+}
+
+@keyframes toastEnterBottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes toastExitBottom {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+}
+
+.toast-enter-bottom {
+  animation: toastEnterBottom 0.22s ease-out forwards;
+}
+
+.toast-exit-bottom {
+  animation: toastExitBottom 0.22s ease-in forwards;
 }

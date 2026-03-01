@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { processWebsite, validateCredentials } from '../utils/credentialUtils'
+import Toast from './Toast'
+import { useFieldNavigation } from '../hooks/useFieldNavigation'
 
 const CARD_BG = 'rgb(6, 9, 18)'
-const STORAGE_KEY = 'passop_credentials'
 
-const FloatingInput = ({ id, label, type = 'text', name, value, onChange, children }) => {
+const FloatingInput = ({ id, label, type = 'text', name, value, onChange, disabled, inputRef, onKeyDown, children }) => {
   const [focused, setFocused] = useState(false)
   const floating = focused || value.length > 0
 
@@ -17,10 +19,19 @@ const FloatingInput = ({ id, label, type = 'text', name, value, onChange, childr
         type={type}
         value={value}
         onChange={onChange}
+        ref={inputRef}
+        onKeyDown={onKeyDown}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         autoComplete="off"
-        className={`peer w-full rounded-lg px-4 pt-5 pb-2.5 text-base font-light text-slate-100 bg-transparent outline-none transition-all duration-200 border floating-input ${focused ? 'border-blue-500/60 ring-1 ring-blue-700/20' : 'border-slate-700/60 hover:border-slate-500/60'}`}
+        disabled={disabled}
+        className={`peer w-full rounded-lg px-4 pt-5 pb-2.5 text-base font-light text-slate-100 bg-transparent outline-none transition-all duration-200 border floating-input ${
+          disabled
+            ? 'border-slate-800/40 opacity-50 cursor-not-allowed'
+            : focused
+            ? 'border-blue-500/60 ring-1 ring-blue-700/20'
+            : 'border-slate-700/60 hover:border-slate-500/60'
+        }`}
       />
       <label
         htmlFor={id}
@@ -43,25 +54,20 @@ const FloatingInput = ({ id, label, type = 'text', name, value, onChange, childr
   )
 }
 
-const Manager = () => {
+const Spinner = () => (
+  <svg className="animate-spin flex-shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(96,165,250,0.8)" strokeWidth="2">
+    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+  </svg>
+)
+
+const Manager = ({ credentials, setCredentials }) => {
   const [values, setValues] = useState({ url: '', username: '', password: '' })
-  const [credentials, setCredentials] = useState([])
   const [showPassword, setShowPassword] = useState(false)
-  const [btnAnimating, setBtnAnimating] = useState(false)
+  const [btnState, setBtnState] = useState('idle')
+  const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (stored) setCredentials(JSON.parse(stored))
-    } catch {
-      setCredentials([])
-    }
-  }, [])
-
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(credentials))
-  }, [credentials])
+  const [toast, setToast] = useState(null)
+  const { setRef, handleKeyDown } = useFieldNavigation(4)
 
   const handleChange = (e) => {
     setError('')
@@ -70,29 +76,45 @@ const Manager = () => {
 
   const handleAdd = (e) => {
     e.preventDefault()
-    if (!values.url.trim() || !values.username.trim() || !values.password.trim()) {
-      setError('All fields are required.')
+    if (isSaving) return
+    const validationError = validateCredentials(values)
+    if (validationError) {
+      setError(validationError)
       return
     }
+
+    setIsSaving(true)
+    setBtnState('loading')
+
     const newCredential = {
       id: crypto.randomUUID(),
-      url: values.url.trim(),
+      url: processWebsite(values.url),
       username: values.username.trim(),
       password: values.password.trim(),
     }
-    setCredentials(prev => [...prev, newCredential])
-    setBtnAnimating(true)
+
     setTimeout(() => {
-      setBtnAnimating(false)
-      setValues({ url: '', username: '', password: '' })
-      setShowPassword(false)
-      setError('')
-    }, 1800)
+      setCredentials(prev => [...prev, newCredential])
+      setBtnState('success')
+      setToast({ type: 'success', message: 'Credential added to vault' })
+      setIsSaving(false)
+
+      setTimeout(() => {
+        setBtnState('idle')
+        setValues({ url: '', username: '', password: '' })
+        setShowPassword(false)
+        setError('')
+      }, 1800)
+    }, 600)
   }
 
   return (
     <>
-      <div className="absolute top-0 z-[-2] h-screen w-screen bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
+      <div className="absolute top-0 z-[-2] h-screen w-full bg-neutral-950 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(120,119,198,0.3),rgba(255,255,255,0))]" />
+
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onDismiss={() => setToast(null)} />
+      )}
 
       <div className="manager-root min-h-[100dvh] flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col gap-6">
@@ -112,11 +134,9 @@ const Manager = () => {
               className="absolute top-6 right-6 group flex items-center justify-center overflow-hidden rounded-lg border border-slate-700/50 hover:border-slate-500/60 px-3 py-2 transition-all duration-300 vault-link text-slate-400 hover:text-slate-200"
               title="Vault"
             >
-              <svg
-                width="16" height="16" viewBox="0 0 24 24" fill="none"
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                 stroke="rgba(96,165,250,0.7)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-                className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
-              >
+                className="flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
                 <rect x="2" y="7" width="20" height="14" rx="2" />
                 <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
                 <line x1="12" y1="12" x2="12" y2="16" />
@@ -145,24 +165,28 @@ const Manager = () => {
 
             <form onSubmit={handleAdd} className="flex flex-col gap-5">
               <FloatingInput
-                id="url" name="url" label="Website" type="url"
-                value={values.url} onChange={handleChange}
+                id="url" name="url" label="Website" type="text"
+                value={values.url} onChange={handleChange} disabled={isSaving}
+                inputRef={setRef(0)} onKeyDown={handleKeyDown(0)}
               />
               <div className="flex flex-col md:flex-row gap-5">
                 <FloatingInput
                   id="username" name="username" label="Username" type="text"
-                  value={values.username} onChange={handleChange}
+                  value={values.username} onChange={handleChange} disabled={isSaving}
+                  inputRef={setRef(1)} onKeyDown={handleKeyDown(1)}
                 />
                 <div className="w-full">
                   <FloatingInput
                     id="password" name="password" label="Password"
                     type={showPassword ? 'text' : 'password'}
-                    value={values.password} onChange={handleChange}
+                    value={values.password} onChange={handleChange} disabled={isSaving}
+                    inputRef={setRef(2)} onKeyDown={handleKeyDown(2)}
                   >
                     <button
                       type="button"
                       onClick={() => setShowPassword(prev => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-0.5 outline-none z-10 group"
+                      disabled={isSaving}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-0.5 outline-none z-10 group disabled:opacity-40 disabled:cursor-not-allowed"
                     >
                       <div className="relative w-5 h-5 text-slate-600 group-hover:text-slate-300 transition-colors duration-200">
                         <span className={`absolute inset-0 flex items-center justify-center transition-all duration-300 origin-center ${showPassword ? 'opacity-100 scale-y-100' : 'opacity-0 scale-y-0'}`}>
@@ -189,18 +213,42 @@ const Manager = () => {
               <div className="divider-line" />
 
               <button
+                ref={setRef(3)}
                 type="submit"
-                className="btn-credential w-full flex items-center justify-center gap-3 py-3 px-6 rounded-lg border border-slate-700/50 text-slate-300 text-xs tracking-[0.18em] uppercase manager-add-btn"
+                disabled={btnState !== 'idle'}
+                className={`btn-credential w-full flex items-center justify-center gap-3 py-3 px-6 rounded-lg border text-xs tracking-[0.18em] uppercase manager-add-btn transition-all duration-300 ${
+                  btnState === 'success'
+                    ? 'border-green-600/40 text-green-400/90 btn-success'
+                    : 'border-slate-700/50 text-slate-300'
+                } ${btnState !== 'idle' ? 'opacity-80 cursor-not-allowed' : ''}`}
               >
-                <span className={`flex-shrink-0 ${btnAnimating ? 'shield-spin' : ''}`}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                    stroke="rgba(96,165,250,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                  </svg>
-                </span>
-                Add Credential
+                {btnState === 'loading' && (
+                  <>
+                    <Spinner />
+                    Saving...
+                  </>
+                )}
+                {btnState === 'success' && (
+                  <>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Added
+                  </>
+                )}
+                {btnState === 'idle' && (
+                  <>
+                    <span className="flex-shrink-0">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                        stroke="rgba(96,165,250,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                      </svg>
+                    </span>
+                    Add Credential
+                  </>
+                )}
               </button>
             </form>
           </div>
