@@ -246,7 +246,7 @@ const Manager = ({ credentials, setCredentials }) => {
                         <line x1="8" y1="12" x2="16" y2="12" />
                       </svg>
                     </span>
-                    Add Credential
+                    Save Credential
                   </>
                 )}
               </button>
