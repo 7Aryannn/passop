@@ -97,11 +97,11 @@ const Manager = () => {
       <div className="manager-root min-h-[100dvh] flex flex-col items-center justify-center px-4">
         <div className="w-full max-w-xl flex flex-col gap-6">
 
-          <div className="text-center">
-            <p className="text-slate-400 text-sm font-light leading-relaxed tracking-wide">
+          <div className="text-center pt-24 sm:pt-28 md:pt-32 lg:pt-0">
+            <p className="text-slate-400 text-xs sm:text-sm md:text-base font-light leading-relaxed tracking-wide">
               Store, manage, and access your credentials securely.
             </p>
-            <p className="text-slate-500 text-sm font-light leading-relaxed tracking-wide">
+            <p className="text-slate-500 text-xs sm:text-sm md:text-base font-light leading-relaxed tracking-wide">
               Your vault, your control.
             </p>
           </div>
