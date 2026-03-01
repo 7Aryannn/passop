@@ -96,7 +96,7 @@ const Manager = ({ credentials, setCredentials }) => {
     setTimeout(() => {
       setCredentials(prev => [...prev, newCredential])
       setBtnState('success')
-      setToast({ type: 'success', message: 'Credential added to vault' })
+      setToast({ type: 'success', message: 'Credential saved to vault' })
       setIsSaving(false)
 
       setTimeout(() => {
@@ -233,7 +233,7 @@ const Manager = ({ credentials, setCredentials }) => {
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(34,197,94,0.9)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
-                    Added
+                    Saved
                   </>
                 )}
                 {btnState === 'idle' && (
