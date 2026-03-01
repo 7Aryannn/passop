@@ -2,7 +2,7 @@
 
 A client-side password manager built with React and Tailwind CSS. PassOP allows users to store, manage, and access credentials locally in their browser. The project focuses on usability, accessibility, and security-conscious design without relying on any backend or third-party storage.
 
-**Live Demo:** [passop.vercel.app](https://passop.vercel.app)
+**Live Demo:** [passop-vault.vercel.app](https://passop-vault.vercel.app)
 
 ---
 
