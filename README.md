@@ -56,8 +56,6 @@ PassOP is a portfolio-grade password manager that runs entirely in the browser. 
 
 ### Security Considerations
 
-- Clipboard auto-clear: after copying a password, the clipboard is cleared after 30 seconds
-- Before clearing, the app verifies the clipboard still contains the copied password to avoid overwriting unrelated content
 - Strong validation prevents weak or malformed credentials from being saved
 - Controlled React state prevents race conditions and double submissions
 - No external API calls — all data stays on the user's device
