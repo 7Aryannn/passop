@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { processWebsite, validateCredentials } from '../utils/credentialUtils'
@@ -67,33 +67,18 @@ const Vault = ({ credentials, setCredentials }) => {
   const { setRef, handleKeyDown } = useFieldNavigation(4)
   const pendingDeleteRef = useRef(null)
   const deleteTimerRef = useRef(null)
-  const clipboardTimerRef = useRef(null)
-  const lastCopiedRef = useRef(null)
 
   const showToast = (type, message, extra = {}) => setToast({ type, message, ...extra })
 
   const handleCopyPassword = async (password) => {
     try {
       await navigator.clipboard.writeText(password)
-      lastCopiedRef.current = password
-      clearTimeout(clipboardTimerRef.current)
-      showToast('success', 'Password copied. Clears in 30 seconds.')
-      clipboardTimerRef.current = setTimeout(async () => {
-        try {
-          const current = await navigator.clipboard.readText()
-          if (current === lastCopiedRef.current) {
-            await navigator.clipboard.writeText('')
-            showToast('success', 'Clipboard cleared.')
-          }
-        } catch {}
-        lastCopiedRef.current = null
-      }, 30000)
+      showToast('success', 'Password copied to clipboard.')
     } catch {}
   }
 
   useEffect(() => {
     return () => {
-      clearTimeout(clipboardTimerRef.current)
       clearTimeout(deleteTimerRef.current)
     }
   }, [])
